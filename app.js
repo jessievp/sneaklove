@@ -8,32 +8,45 @@ const app = express();
 const createError = require("http-errors");
 const cookieParser = require("cookie-parser");
 const flash = require("connect-flash");
-const hbo = require("hbs");
+const hbs = require("hbs");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const dev_mode = false;
 const logger = require("morgan");
+
+const collectionRouter = require("./routes/index");
+
+//const authRouter = require("./routes/auth");
+//const dashboardRouter = require("./routes/dashboard_sneaker");
+
 
 // config logger (pour debug)
 app.use(logger("dev"));
 
 // initial config
 app.set("view engine", "hbs");
-app.set("views", __dirname + "/view");
+app.set("views", __dirname + "/views");
+
 app.use(express.static("public"));
-hbs.registerPartials(__dirname + "/views/partials");
+hbs.registerPartials(__dirname + "/views/partial");
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
+
+
+//app.use("/", dashboardRouter);
+
 
 // SESSION SETUP
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
-    cookie: { maxAge: 60000 }, // in millisec
-    store: MongoStore.create({ mongoUrl: process.env.MOGO_URL }),
     saveUninitialized: true,
     resave: true,
+   // in millisec
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+   
+    cookie: { maxAge: 60000 }, 
   })
 );
 
@@ -54,6 +67,7 @@ app.use(require("./middlewares/exposeFlashMessage")); // expose flash messages t
 
 // routers
 app.use("/", require("./routes/index"));
+//app.use("/collection", require("./routes/index"));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
